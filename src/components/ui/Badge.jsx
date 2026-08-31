@@ -1,3 +1,5 @@
+import { useLanguage } from '@/components/layout/LanguageContext';
+
 const statusStyles = {
   'Approved': 'bg-emerald-100 text-emerald-800',
   'Certificate Issued': 'bg-emerald-100 text-emerald-800',
@@ -13,12 +15,13 @@ const statusStyles = {
 };
 
 export default function Badge({ status, className = '' }) {
+  const { t } = useLanguage();
   const style = statusStyles[status] || 'bg-gray-100 text-gray-800';
   return (
     <span
       className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${style} ${className}`}
     >
-      {status}
+      {t(status)}
     </span>
   );
 }

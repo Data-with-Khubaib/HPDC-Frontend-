@@ -1,67 +1,68 @@
 'use client';
-import { useState, useMemo } from 'react';
-import { searchCertificates, paginateCertificates } from '@/lib/mock-data/certificates';
+import { useState, useEffect } from 'react';
+const certificatesCache = {};
 
 export function useCertificates() {
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalItems, setTotalItems] = useState(0); // MockAPI Total Items Count
+
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [issuedFrom, setIssuedFrom] = useState('');
-  const [issuedTo, setIssuedTo] = useState('');
-  const [expiryFrom, setExpiryFrom] = useState('');
-  const [expiryTo, setExpiryTo] = useState('');
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
 
-  const filtered = useMemo(() => {
-    return searchCertificates({
-      query,
-      status: statusFilter,
-      type: typeFilter,
-      issuedFrom,
-      issuedTo,
-      expiryFrom,
-      expiryTo,
-    });
-  }, [query, statusFilter, typeFilter, issuedFrom, issuedTo, expiryFrom, expiryTo]);
-
-  const paginated = useMemo(() => {
-    return paginateCertificates(filtered, page, perPage);
-  }, [filtered, page, perPage]);
-
-  const resetFilters = () => {
-    setQuery('');
-    setStatusFilter('all');
-    setTypeFilter('all');
-    setIssuedFrom('');
-    setIssuedTo('');
-    setExpiryFrom('');
-    setExpiryTo('');
+  const applyAdvancedFilters = ({ status }) => {
+    if (status !== undefined) setStatusFilter(status);
     setPage(1);
   };
 
-  const applyAdvancedFilters = ({ issuedFrom: iF, issuedTo: iT, expiryFrom: eF, expiryTo: eT, status: s }) => {
-    if (iF !== undefined) setIssuedFrom(iF);
-    if (iT !== undefined) setIssuedTo(iT);
-    if (eF !== undefined) setExpiryFrom(eF);
-    if (eT !== undefined) setExpiryTo(eT);
-    if (s !== undefined) setStatusFilter(s);
-    setPage(1);
-  };
+  useEffect(() => {
+    async function fetchCertificates() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const statusParam = statusFilter !== 'all' ? `&status=${statusFilter}` : '';
+        const response = await fetch(
+          `https://6a9523f70e895b145e5fb03b.mockapi.io/Certificates?page=${page}&limit=${limit}&search=${query}${statusParam}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch certificates data');
+        }
+
+        const data = await response.json();
+
+        setCertificates(data);
+        const totalResponse = await fetch(`https://6a9523f70e895b145e5fb03b.mockapi.io/Certificates`);
+        const allData = await totalResponse.json();
+        setTotalItems(allData.length);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCertificates();
+  }, [page, limit, query, statusFilter]);
 
   return {
-    certificates: paginated.data,
-    pagination: paginated,
-    query, setQuery,
-    statusFilter, setStatusFilter,
-    typeFilter, setTypeFilter,
-    issuedFrom, setIssuedFrom,
-    issuedTo, setIssuedTo,
-    expiryFrom, setExpiryFrom,
-    expiryTo, setExpiryTo,
-    page, setPage,
-    perPage, setPerPage,
-    resetFilters,
+    certificates,
+    loading,
+    error,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalItems,
+    query,
+    setQuery,
+    statusFilter,
+    setStatusFilter,
     applyAdvancedFilters,
   };
 }

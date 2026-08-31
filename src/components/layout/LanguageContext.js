@@ -101,6 +101,10 @@ const translations = {
     changePassword: 'Change Password',
     notifications: 'Notifications',
     fillRequiredFieldsWarning: 'Please fill in all required fields marked with an asterisk (*) before proceeding.',
+    Valid: 'Valid',
+    Suspended: 'Suspend',
+    Withdrawn: 'Withdrawn',
+    Expired: 'Expired'
   },
   Arabic: {
     dashboard: 'لوحة التحكم',
@@ -199,6 +203,10 @@ const translations = {
     changePassword: 'تغيير كلمة المرور',
     notifications: 'الإشعارات',
     fillRequiredFieldsWarning: 'يرجى ملء جميع الحقول المطلوبة المميزة بنجمة (*) قبل المتابعة.',
+    Valid: 'صالِح',
+    Suspended: 'تجميد',
+    Withdrawn: 'مَسْحوب',
+    Expired: 'منتهي'
   },
 };
 
@@ -225,7 +233,7 @@ export function useLanguage() {
   if (!context) {
     return {
       language: 'English',
-      setLanguage: () => {},
+      setLanguage: () => { },
       t: (key) => key,
       isRtl: false,
     };
