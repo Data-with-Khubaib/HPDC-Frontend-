@@ -17,6 +17,17 @@ export default function CompanyDetailsPage() {
   const { t } = useLanguage();
   const [errors, setErrors] = useState({});
 
+  const handleFieldChange = (field, value) => {
+    updateField(field, value);
+    if (errors[field]) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[field];
+        return copy;
+      });
+    }
+  };
+
   const yesNoOptions = [
     { val: 'Yes', label: t('yes') },
     { val: 'No', label: t('no') },
@@ -64,7 +75,7 @@ export default function CompanyDetailsPage() {
   };
 
   const addBrand = () => {
-    updateField('brands', [
+    handleFieldChange('brands', [
       ...formData.brands,
       { name: '', productsEn: '', productsAr: '', criticalProcesses: '', outsourcedProcesses: '' },
     ]);
@@ -73,7 +84,7 @@ export default function CompanyDetailsPage() {
   const updateBrand = (index, field, value) => {
     const updated = [...formData.brands];
     updated[index] = { ...updated[index], [field]: value };
-    updateField('brands', updated);
+    handleFieldChange('brands', updated);
   };
 
   return (
@@ -96,22 +107,22 @@ export default function CompanyDetailsPage() {
       <QuestionCard title={t('orgBasicDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <FormField label={t('legalNameEn')} required error={errors.legalNameEn}>
-            <TextInput value={formData.legalNameEn} onChange={(v) => updateField('legalNameEn', v)} placeholder="interlink" hasError={!!errors.legalNameEn} />
+            <TextInput value={formData.legalNameEn} onChange={(v) => handleFieldChange('legalNameEn', v)} placeholder="interlink" hasError={!!errors.legalNameEn} />
           </FormField>
           <FormField label={t('legalNameAr')} required error={errors.legalNameAr}>
-            <TextInput value={formData.legalNameAr} onChange={(v) => updateField('legalNameAr', v)} placeholder="أدخل اسم الشركة بالعربية" hasError={!!errors.legalNameAr} arabicOnly />
+            <TextInput value={formData.legalNameAr} onChange={(v) => handleFieldChange('legalNameAr', v)} placeholder="أدخل اسم الشركة بالعربية" hasError={!!errors.legalNameAr} arabicOnly />
           </FormField>
           <FormField label={t('crNumber')} required error={errors.crNumber}>
-            <TextInput value={formData.crNumber} onChange={(v) => updateField('crNumber', v)} placeholder="0980000000" hasError={!!errors.crNumber} />
+            <TextInput value={formData.crNumber} onChange={(v) => handleFieldChange('crNumber', v)} placeholder="0980000000" hasError={!!errors.crNumber} />
           </FormField>
           <FormField label={t('vatYear')} required error={errors.vatYear}>
-            <TextInput value={formData.vatYear} onChange={(v) => updateField('vatYear', v)} placeholder="89750000" hasError={!!errors.vatYear} />
+            <TextInput value={formData.vatYear} onChange={(v) => handleFieldChange('vatYear', v)} placeholder="89750000" hasError={!!errors.vatYear} />
           </FormField>
           <FormField label={t('orgType')} required error={errors.orgType}>
-            <SelectInput value={formData.orgType} onChange={(v) => updateField('orgType', v)} options={['LLC', 'Private', 'JSC', 'Partnership', 'Sole Proprietorship', 'Government', 'Non-Profit']} placeholder="LLC" hasError={!!errors.orgType} />
+            <SelectInput value={formData.orgType} onChange={(v) => handleFieldChange('orgType', v)} options={['LLC', 'Private', 'JSC', 'Partnership', 'Sole Proprietorship', 'Government', 'Non-Profit']} placeholder="LLC" hasError={!!errors.orgType} />
           </FormField>
           <FormField label={t('sector')} required error={errors.sector}>
-            <SelectInput value={formData.sector} onChange={(v) => updateField('sector', v)} options={['Manufacturing', 'Food Processing', 'Logistics', 'Technology', 'Energy', 'Healthcare', 'Construction', 'Agriculture', 'Mining', 'Hospitality', 'Retail', 'Other']} placeholder="Sector" hasError={!!errors.sector} />
+            <SelectInput value={formData.sector} onChange={(v) => handleFieldChange('sector', v)} options={['Manufacturing', 'Food Processing', 'Logistics', 'Technology', 'Energy', 'Healthcare', 'Construction', 'Agriculture', 'Mining', 'Hospitality', 'Retail', 'Other']} placeholder="Sector" hasError={!!errors.sector} />
           </FormField>
         </div>
       </QuestionCard>
@@ -120,20 +131,20 @@ export default function CompanyDetailsPage() {
       <QuestionCard title={t('addressContactDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <FormField label={t('headOfficeEn')} required error={errors.headOfficeEn}>
-            <TextInput value={formData.headOfficeEn} onChange={(v) => updateField('headOfficeEn', v)} placeholder="Enter address in English" hasError={!!errors.headOfficeEn} />
+            <TextInput value={formData.headOfficeEn} onChange={(v) => handleFieldChange('headOfficeEn', v)} placeholder="Enter address in English" hasError={!!errors.headOfficeEn} />
           </FormField>
           <FormField label={t('headOfficeAr')} required error={errors.headOfficeAr}>
-            <TextInput value={formData.headOfficeAr} onChange={(v) => updateField('headOfficeAr', v)} placeholder="أدخل العنوان بالعربية" hasError={!!errors.headOfficeAr} arabicOnly />
+            <TextInput value={formData.headOfficeAr} onChange={(v) => handleFieldChange('headOfficeAr', v)} placeholder="أدخل العنوان بالعربية" hasError={!!errors.headOfficeAr} arabicOnly />
           </FormField>
           <FormField label={t('website')}>
-            <TextInput value={formData.website} onChange={(v) => updateField('website', v)} placeholder="https://example.com" type="url" />
+            <TextInput value={formData.website} onChange={(v) => handleFieldChange('website', v)} placeholder="https://example.com" type="url" />
           </FormField>
           <FormField label={t('websiteAr')}>
-            <TextInput value={formData.websiteAr} onChange={(v) => updateField('websiteAr', v)} placeholder="https://example.com/ar" />
+            <TextInput value={formData.websiteAr} onChange={(v) => handleFieldChange('websiteAr', v)} placeholder="https://example.com/ar" />
           </FormField>
           <div className="md:col-span-2">
             <FormField label={t('contactInfo')} required error={errors.contactInfo}>
-              <TextInput value={formData.contactInfo} onChange={(v) => updateField('contactInfo', v)} placeholder="Phone, email, or other contact details" hasError={!!errors.contactInfo} />
+              <TextInput value={formData.contactInfo} onChange={(v) => handleFieldChange('contactInfo', v)} placeholder="Phone, email, or other contact details" hasError={!!errors.contactInfo} />
             </FormField>
           </div>
         </div>
@@ -150,7 +161,7 @@ export default function CompanyDetailsPage() {
           ].map(({ labelKey, field }) => (
             <FormField key={field} label={t(labelKey)} required error={errors[field]}>
               <FileUploadBox
-                onChange={(e) => updateField(field, e.target.files[0])}
+                onChange={(e) => handleFieldChange(field, e.target.files[0])}
                 fileName={formData[field]?.name}
                 hasError={!!errors[field]}
               />
@@ -164,15 +175,15 @@ export default function CompanyDetailsPage() {
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <FormField label="Scope of Certification (English)" required error={errors.certAreasEn}>
-              <TextInput value={formData.certAreasEn} onChange={(v) => updateField('certAreasEn', v)} placeholder="Enter in English" hasError={!!errors.certAreasEn} />
+              <TextInput value={formData.certAreasEn} onChange={(v) => handleFieldChange('certAreasEn', v)} placeholder="Enter in English" hasError={!!errors.certAreasEn} />
             </FormField>
             <FormField label="Scope of Certification (Arabic)" required error={errors.certScopeAr}>
-              <TextInput value={formData.certScopeAr} onChange={(v) => updateField('certScopeAr', v)} placeholder="أدخل باللغة العربية" hasError={!!errors.certScopeAr} arabicOnly />
+              <TextInput value={formData.certScopeAr} onChange={(v) => handleFieldChange('certScopeAr', v)} placeholder="أدخل باللغة العربية" hasError={!!errors.certScopeAr} arabicOnly />
             </FormField>
           </div>
 
           <FormField label={t('multisiteQuestion')} required error={errors.multisite}>
-            <RadioGroup value={formData.multisite} onChange={(v) => updateField('multisite', v)} options={yesNoOptions} />
+            <RadioGroup value={formData.multisite} onChange={(v) => handleFieldChange('multisite', v)} options={yesNoOptions} />
           </FormField>
         </div>
       </QuestionCard>
@@ -181,25 +192,25 @@ export default function CompanyDetailsPage() {
       <QuestionCard title={t('workforceDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <FormField label={t('totalEmployees')} required error={errors.totalEmployees}>
-            <TextInput value={formData.totalEmployees} onChange={(v) => updateField('totalEmployees', v)} placeholder="e.g. 500" type="number" hasError={!!errors.totalEmployees} />
+            <TextInput value={formData.totalEmployees} onChange={(v) => handleFieldChange('totalEmployees', v)} placeholder="e.g. 500" type="number" hasError={!!errors.totalEmployees} />
           </FormField>
           <FormField label={t('permanentEmployees')} required error={errors.permanentEmployees}>
-            <TextInput value={formData.permanentEmployees} onChange={(v) => updateField('permanentEmployees', v)} placeholder="e.g. 350" type="number" hasError={!!errors.permanentEmployees} />
+            <TextInput value={formData.permanentEmployees} onChange={(v) => handleFieldChange('permanentEmployees', v)} placeholder="e.g. 350" type="number" hasError={!!errors.permanentEmployees} />
           </FormField>
           <FormField label={t('contractEmployees')} required error={errors.contractEmployees}>
-            <TextInput value={formData.contractEmployees} onChange={(v) => updateField('contractEmployees', v)} placeholder="e.g. 150" type="number" hasError={!!errors.contractEmployees} />
+            <TextInput value={formData.contractEmployees} onChange={(v) => handleFieldChange('contractEmployees', v)} placeholder="e.g. 150" type="number" hasError={!!errors.contractEmployees} />
           </FormField>
           <FormField label={t('numberOfSites')} required error={errors.numberOfSites}>
-            <TextInput value={formData.numberOfSites} onChange={(v) => updateField('numberOfSites', v)} placeholder="e.g. 3" type="number" hasError={!!errors.numberOfSites} />
+            <TextInput value={formData.numberOfSites} onChange={(v) => handleFieldChange('numberOfSites', v)} placeholder="e.g. 3" type="number" hasError={!!errors.numberOfSites} />
           </FormField>
         </div>
 
         <div className="flex flex-col gap-6">
           <FormField label={t('shiftOperations')} required error={errors.shiftOperations}>
-            <RadioGroup value={formData.shiftOperations} onChange={(v) => updateField('shiftOperations', v)} options={yesNoOptions} />
+            <RadioGroup value={formData.shiftOperations} onChange={(v) => handleFieldChange('shiftOperations', v)} options={yesNoOptions} />
           </FormField>
           <FormField label={t('remoteWork')}>
-            <RadioGroup value={formData.remoteWork} onChange={(v) => updateField('remoteWork', v)} options={yesNoOptions} />
+            <RadioGroup value={formData.remoteWork} onChange={(v) => handleFieldChange('remoteWork', v)} options={yesNoOptions} />
           </FormField>
         </div>
       </QuestionCard>
@@ -251,7 +262,7 @@ export default function CompanyDetailsPage() {
             { label: 'ISO 50001 (Energy) *', field: 'iso50001' },
           ].map(({ label, field }) => (
             <FormField key={field} label={label}>
-              <RadioGroup value={formData[field]} onChange={(v) => updateField(field, v)} options={yesNoOptions} />
+              <RadioGroup value={formData[field]} onChange={(v) => handleFieldChange(field, v)} options={yesNoOptions} />
             </FormField>
           ))}
 
@@ -263,7 +274,7 @@ export default function CompanyDetailsPage() {
             <input
               type="text"
               value={formData.otherCerts}
-              onChange={(e) => updateField('otherCerts', e.target.value)}
+              onChange={(e) => handleFieldChange('otherCerts', e.target.value)}
               placeholder="Short-answer text"
               className="w-full pb-2 pt-2 text-sm bg-transparent border-b border-[#D1D5DB] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#2D6A4F] transition-colors"
             />
@@ -284,7 +295,7 @@ export default function CompanyDetailsPage() {
             { label: 'Good Labour / ESG Compliance Assessment', field: 'esgCompliance' },
           ].map(({ label, field }) => (
             <FormField key={field} label={label}>
-              <RadioGroup value={formData[field]} onChange={(v) => updateField(field, v)} options={yesNoOptions} />
+              <RadioGroup value={formData[field]} onChange={(v) => handleFieldChange(field, v)} options={yesNoOptions} />
             </FormField>
           ))}
         </div>
@@ -299,7 +310,7 @@ export default function CompanyDetailsPage() {
           <input
             type="text"
             value={formData.additionalNotes}
-            onChange={(e) => updateField('additionalNotes', e.target.value)}
+            onChange={(e) => handleFieldChange('additionalNotes', e.target.value)}
             placeholder="Short-answer text"
             className="w-full pb-2 pt-2 text-sm bg-transparent border-b border-[#D1D5DB] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#2D6A4F] transition-colors"
           />
@@ -314,7 +325,7 @@ export default function CompanyDetailsPage() {
             type="file"
             multiple
             accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
-            onChange={(e) => updateField('supportingDocs', e.target.files)}
+            onChange={(e) => handleFieldChange('supportingDocs', e.target.files)}
             className="mt-4"
           />
         </div>

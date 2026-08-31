@@ -1,30 +1,65 @@
 'use client';
-import { useState, useMemo } from 'react';
-import { applications, searchApplications, getRecentApplications } from '@/lib/mock-data/applications';
+import { useState, useEffect } from 'react';
 
 export function useApplications() {
+  const [applications, setApplications] = useState([]);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filtered = useMemo(() => {
-    return searchApplications(query, statusFilter);
-  }, [query, statusFilter]);
+  useEffect(() => {
+    async function fetchApplications() {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const recent = useMemo(() => {
-    if (query) {
-      const searched = searchApplications(query, 'all');
-      return searched.slice(0, 5);
+        const statusParam = statusFilter !== 'all' ? `&status=${statusFilter}` : '';
+        const response = await fetch(
+          `https://6a9523f70e895b145e5fb03b.mockapi.io/Applications?page=${page}&limit=${limit}&search=${query}${statusParam}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch applications data');
+        }
+
+        const resData = await response.json();
+        setApplications(resData);
+
+        const totalResponse = await fetch(`https://6a9523f70e895b145e5fb03b.mockapi.io/Applications`);
+        const allData = await totalResponse.json();
+        setTotalItems(allData.length);
+        setData(allData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     }
-    return getRecentApplications(5);
-  }, [query]);
+
+    fetchApplications();
+  }, [page, limit, query, statusFilter]);
 
   return {
-    applications: filtered,
-    recentApplications: recent,
-    allApplications: applications,
+    applications,
+    data,
+    loading,
+    error,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalItems,
     query,
     setQuery,
     statusFilter,
     setStatusFilter,
+    recentApplications: applications.slice(0, 5),
   };
 }

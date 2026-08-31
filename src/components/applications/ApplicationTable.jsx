@@ -2,24 +2,31 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
 import SearchInput from '@/components/ui/SearchInput';
 import DocumentsModal from './DocumentsModal';
 import { useApplications } from '@/hooks/useApplications';
 import { useLanguage } from '@/components/layout/LanguageContext';
 import { ChevronDown, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { formatDate } from '@/lib/mock-data/formatters';
 
 export default function ApplicationTable() {
   const router = useRouter();
-  const { applications, query, setQuery, statusFilter, setStatusFilter } = useApplications();
+  const {
+    applications,
+    loading,
+    error,
+    query, setQuery,
+    statusFilter, setStatusFilter,
+    page, setPage,
+    limit, setLimit,
+    totalItems,
+  } = useApplications();
   const { t } = useLanguage();
   const [docsApp, setDocsApp] = useState(null);
-  const [page, setPage] = useState(1);
-  const perPage = 10;
 
-  const total = 65;
-  const start = (page - 1) * perPage + 1;
-  const end = Math.min(page * perPage, total);
+  const totalPages = Math.ceil((totalItems || 1) / limit);
+  const start = totalItems > 0 ? (page - 1) * limit + 1 : 0;
+  const end = Math.min(page * limit, totalItems);
 
   const statusOptions = [
     { value: 'all', label: t('allStatus') },
@@ -51,7 +58,10 @@ export default function ApplicationTable() {
             <div className="relative">
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="appearance-none pl-4 pr-10 py-2.5 text-sm border border-[#E5E7EB] rounded-lg bg-white text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/20 cursor-pointer"
               >
                 {statusOptions.map((opt) => (
@@ -79,56 +89,77 @@ export default function ApplicationTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {applications.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-sm text-[#6B7280]">
+                    Loading applications...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-sm text-red-500">
+                    Error loading applications: {error}
+                  </td>
+                </tr>
+              ) : applications.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-sm text-[#6B7280]">
                     No applications found
                   </td>
                 </tr>
               ) : (
-                applications.slice(0, 10).map((app) => (
-                  <tr
-                    key={app.id}
-                    onClick={(e) => handleRowClick(app, e)}
-                    className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                  >
-                    <td className="py-4 px-4 text-sm font-semibold text-[#111827]">
-                      {app.applicationNo}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-[#6B7280]">
-                      {app.companyName.length > 15 ? app.companyName.substring(0, 15) + '...' : app.companyName}
-                    </td>
-                    <td className="py-4 px-4">
-                      <Badge status={app.status} />
-                    </td>
-                    <td className="py-4 px-4 text-sm text-[#6B7280]">
-                      {app.submittedDate}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDocsApp(app);
-                        }}
-                        className="px-4 py-1.5 text-xs font-medium border border-[#E5E7EB] rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-[#111827]"
-                      >
-                        {t('viewDocuments')}
-                      </button>
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/company/applications/${app.id}`);
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                      >
-                        {t('viewDetails')}
-                        <ArrowRight size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                applications.map((app) => {
+                  const appNo = app.applicationNo || app.ApplicationNo || '-';
+                  const compName = app.companyName || app.CompanyName || '-';
+                  const subDate = app.submittedDate || app.SubmittedDate || app.createdAt;
+
+                  return (
+                    <tr
+                      key={app.id}
+                      onClick={(e) => handleRowClick(app, e)}
+                      className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                    >
+                      <td className="py-4 px-4 text-sm font-semibold text-[#111827]">
+                        {appNo}
+                      </td>
+                      <td className="py-4 px-4 text-sm text-[#6B7280]">
+                        {compName.length > 20 ? compName.substring(0, 20) + '...' : compName}
+                      </td>
+                      <td className="py-4 px-4">
+                        <Badge status={
+                          app.status === 'Submitted ' ? 'Submitted' :
+                            app.status ? app.status.charAt(0).toUpperCase() + app.status.slice(1) : 'Valid'
+                        } />
+                      </td>
+                      <td className="py-4 px-4 text-sm text-[#6B7280]">
+                        {formatDate(subDate)}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDocsApp(app);
+                          }}
+                          className="px-4 py-1.5 text-xs font-medium border border-[#E5E7EB] rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-[#111827]"
+                        >
+                          {t('viewDocuments')}
+                        </button>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/company/applications/${app.id}`);
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                        >
+                          {t('viewDetails')}
+                          <ArrowRight size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -137,33 +168,34 @@ export default function ApplicationTable() {
         {/* Pagination Footer */}
         <div className="flex flex-wrap items-center justify-between pt-6 mt-4 border-t border-[#E5E7EB]">
           <span className="text-sm text-[#2D6A4F] font-medium">
-            {t('showing')} {start}-{end} {t('of')} {total}
+            {t('showing')} {start}-{end} {t('of')} {totalItems}
           </span>
 
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setPage(Math.max(1, page - 1))}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 cursor-pointer text-[#6B7280]"
             >
               <ChevronLeft size={16} />
             </button>
-            {[1, 2, 3, 4, 5, 6, 7].map((p) => (
+
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((p) => (
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  page === p
-                    ? 'bg-[#1B4332] text-white'
-                    : 'text-[#6B7280] hover:bg-gray-100'
-                }`}
+                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${page === p
+                  ? 'bg-[#1B4332] text-white'
+                  : 'text-[#6B7280] hover:bg-gray-100'
+                  }`}
               >
                 {p}
               </button>
             ))}
+
             <button
-              onClick={() => setPage(Math.min(7, page + 1))}
-              disabled={page === 7}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
               className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 cursor-pointer text-[#6B7280]"
             >
               <ChevronRight size={16} />
@@ -173,7 +205,14 @@ export default function ApplicationTable() {
           <div className="flex items-center gap-2 text-sm text-[#6B7280]">
             <span>{t('bookingPerPage')}</span>
             <div className="relative">
-              <select className="appearance-none border border-[#E5E7EB] rounded-lg px-3 py-1.5 pr-8 bg-white text-[#111827] focus:outline-none cursor-pointer text-sm">
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="appearance-none border border-[#E5E7EB] rounded-lg px-3 py-1.5 pr-8 bg-white text-[#111827] focus:outline-none cursor-pointer text-sm"
+              >
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>

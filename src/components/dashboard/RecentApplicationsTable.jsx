@@ -3,20 +3,26 @@ import { useState, useMemo } from 'react';
 import { FileText, Users } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import SearchInput from '@/components/ui/SearchInput';
-import { getRecentApplications, searchApplications } from '@/lib/mock-data/applications';
 import { useLanguage } from '@/components/layout/LanguageContext';
+import { useApplications } from '@/hooks/useApplications';
 
 export default function RecentApplicationsTable() {
   const [query, setQuery] = useState('');
   const { t } = useLanguage();
+  const { applications, loading } = useApplications();
 
   const displayApps = useMemo(() => {
+    let list = applications || [];
     if (query) {
-      const searched = searchApplications(query, 'all');
-      return searched.slice(0, 5);
+      const q = query.toLowerCase();
+      list = list.filter((app) => {
+        const appNo = app.applicationNo.toLowerCase();
+        const comp = app.companyName.toLowerCase();
+        return appNo.includes(q) || comp.includes(q);
+      });
     }
-    return getRecentApplications(5);
-  }, [query]);
+    return list.slice(0, 5);
+  }, [applications, query]);
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
@@ -31,36 +37,46 @@ export default function RecentApplicationsTable() {
       </div>
 
       <div className="space-y-3">
-        {displayApps.length === 0 ? (
+        {loading ? (
+          <div className="p-8 text-center text-sm text-[#6B7280]">
+            Loading recent applications...
+          </div>
+        ) : displayApps.length === 0 ? (
           <div className="p-8 text-center text-sm text-[#6B7280]">
             No applications found
           </div>
         ) : (
-          displayApps.map((app) => (
-            <div
-              key={app.id}
-              className="flex items-center justify-between p-4 bg-white rounded-xl border border-[#E5E7EB] hover:border-[#2D6A4F]/30 hover:shadow-sm transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-                  <FileText size={18} className="text-[#2D6A4F]" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-[#2D6A4F]">{app.applicationNo}</p>
-                  <p className="text-xs text-[#6B7280] mt-0.5">{app.companyName}</p>
-                </div>
-              </div>
+          displayApps.map((app) => {
+            const appNo = app.applicationNo || app.ApplicationNo || '-';
+            const compName = app.companyName || app.CompanyName || '-';
+            const appStatus = app.status || app.Status || 'Submitted';
 
-              <div className="flex items-center gap-3">
-                {app.status === 'Assessment Schedule' && (
-                  <div className="hidden sm:flex items-center gap-2 pr-3 border-r border-[#E5E7EB] text-xs text-[#6B7280]">
-                    <Users size={14} />
+            return (
+              <div
+                key={app.id}
+                className="flex items-center justify-between p-4 bg-white rounded-xl border border-[#E5E7EB] hover:border-[#2D6A4F]/30 hover:shadow-sm transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <FileText size={18} className="text-[#2D6A4F]" />
                   </div>
-                )}
-                <Badge status={app.status === 'Approved' ? 'Submitted' : app.status} />
+                  <div>
+                    <p className="text-sm font-bold text-[#2D6A4F]">{appNo}</p>
+                    <p className="text-xs text-[#6B7280] mt-0.5">{compName}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {appStatus === 'Assessment Schedule' && (
+                    <div className="hidden sm:flex items-center gap-2 pr-3 border-r border-[#E5E7EB] text-xs text-[#6B7280]">
+                      <Users size={14} />
+                    </div>
+                  )}
+                  <Badge status={appStatus} />
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

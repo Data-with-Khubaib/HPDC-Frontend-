@@ -13,6 +13,7 @@ export function useCertificates() {
 
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [data, setData] = useState([]);
 
   const applyAdvancedFilters = ({ status }) => {
     if (status !== undefined) setStatusFilter(status);
@@ -40,6 +41,7 @@ export function useCertificates() {
         const totalResponse = await fetch(`https://6a9523f70e895b145e5fb03b.mockapi.io/Certificates`);
         const allData = await totalResponse.json();
         setTotalItems(allData.length);
+        setData(allData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -51,6 +53,7 @@ export function useCertificates() {
   }, [page, limit, query, statusFilter]);
 
   return {
+    data,
     certificates,
     loading,
     error,
