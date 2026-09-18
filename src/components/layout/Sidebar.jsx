@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ClipboardList, Award, LogOut, Menu, X } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
-import Image from 'next/image'
+import Image from 'next/image';
+import { useAuthStore } from '@/lib/authStore';
 
 const navItems = [
   { labelKey: 'dashboard', href: '/company/dashboard', icon: LayoutDashboard },
@@ -56,7 +57,10 @@ export default function Sidebar() {
 
       {/* Sign Out */}
       <div className="px-3 pb-6">
-        <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-[#E53E3E] border border-red-200 bg-red-50/50 hover:bg-red-50 transition-colors w-full cursor-pointer">
+        <button
+          onClick={() => useAuthStore.getState().logout()}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-[#E53E3E] border border-red-200 bg-red-50/50 hover:bg-red-50 transition-colors w-full cursor-pointer"
+        >
           <LogOut size={18} />
           {t('signOut')}
         </button>

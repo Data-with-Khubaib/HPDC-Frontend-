@@ -5,11 +5,10 @@ import { useWizard } from '@/components/apply/WizardContext';
 import { useLanguage } from '@/components/layout/LanguageContext';
 import FormField from '@/components/apply/FormField';
 import TextInput from '@/components/apply/TextInput';
-import SelectInput from '@/components/apply/SelectInput';
 import RadioGroup from '@/components/apply/RadioGroup';
 import FileUploadBox from '@/components/apply/FileUploadBox';
 import { SectionTitle, QuestionCard } from '@/components/apply/QuestionCard';
-import { Plus, Upload, AlertCircle } from 'lucide-react';
+import { Plus, Upload, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function CompanyDetailsPage() {
   const router = useRouter();
@@ -40,8 +39,8 @@ export default function CompanyDetailsPage() {
     if (!formData.legalNameAr?.trim()) newErrors.legalNameAr = 'This field is required';
     if (!formData.crNumber?.trim()) newErrors.crNumber = 'This field is required';
     if (!formData.vatYear?.trim()) newErrors.vatYear = 'This field is required';
-    if (!formData.orgType) newErrors.orgType = 'This field is required';
-    if (!formData.sector) newErrors.sector = 'This field is required';
+    if (!formData.orgType?.trim()) newErrors.orgType = 'This field is required';
+    if (!formData.sector?.trim()) newErrors.sector = 'This field is required';
 
     if (!formData.headOfficeEn?.trim()) newErrors.headOfficeEn = 'This field is required';
     if (!formData.headOfficeAr?.trim()) newErrors.headOfficeAr = 'This field is required';
@@ -49,8 +48,8 @@ export default function CompanyDetailsPage() {
 
     if (!formData.crDocument) newErrors.crDocument = 'This field is required';
     if (!formData.vatDocument) newErrors.vatDocument = 'This field is required';
-    if (!formData.mroDocument) newErrors.mroDocument = 'This field is required';
-    if (!formData.moaDocument) newErrors.moaDocument = 'This field is required';
+    if (!formData.nationalAddressDoc) newErrors.nationalAddressDoc = 'This field is required';
+    if (!formData.ibanDocument) newErrors.ibanDocument = 'This field is required';
 
     if (!formData.certAreasEn?.trim()) newErrors.certAreasEn = 'This field is required';
     if (!formData.certScopeAr?.trim()) newErrors.certScopeAr = 'This field is required';
@@ -59,8 +58,24 @@ export default function CompanyDetailsPage() {
     if (!formData.totalEmployees) newErrors.totalEmployees = 'This field is required';
     if (!formData.permanentEmployees) newErrors.permanentEmployees = 'This field is required';
     if (!formData.contractEmployees) newErrors.contractEmployees = 'This field is required';
+
+    // Validate: permanent + contract <= total
+    const total = parseInt(formData.totalEmployees) || 0;
+    const perm = parseInt(formData.permanentEmployees) || 0;
+    const contract = parseInt(formData.contractEmployees) || 0;
+    if (total > 0 && (perm + contract) > total) {
+      newErrors.permanentEmployees = 'Permanent + Contract cannot exceed Total';
+      newErrors.contractEmployees = 'Permanent + Contract cannot exceed Total';
+    }
+
     if (!formData.numberOfSites) newErrors.numberOfSites = 'This field is required';
     if (!formData.shiftOperations) newErrors.shiftOperations = 'This field is required';
+
+    if (!formData.coreBusinessActivities?.trim()) newErrors.coreBusinessActivities = 'This field is required';
+    if (!formData.keyProductsEn?.trim()) newErrors.keyProductsEn = 'This field is required';
+    if (!formData.keyProductsAr?.trim()) newErrors.keyProductsAr = 'This field is required';
+    if (!formData.criticalProcesses) newErrors.criticalProcesses = 'This field is required';
+    if (!formData.outsourcedProcesses) newErrors.outsourcedProcesses = 'This field is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,11 +89,38 @@ export default function CompanyDetailsPage() {
     }
   };
 
+  // Site details management
+  const addSite = () => {
+    handleFieldChange('siteDetails', [
+      ...formData.siteDetails,
+      { nameEn: '', nameAr: '', addressEn: '', addressAr: '', activitiesEn: '', activitiesAr: '', scopeEn: '', scopeAr: '' },
+    ]);
+  };
+
+  const removeSite = (index) => {
+    if (formData.siteDetails.length <= 1) return;
+    const updated = formData.siteDetails.filter((_, i) => i !== index);
+    handleFieldChange('siteDetails', updated);
+  };
+
+  const updateSite = (index, field, value) => {
+    const updated = [...formData.siteDetails];
+    updated[index] = { ...updated[index], [field]: value };
+    handleFieldChange('siteDetails', updated);
+  };
+
+  // Brand management
   const addBrand = () => {
     handleFieldChange('brands', [
       ...formData.brands,
-      { name: '', productsEn: '', productsAr: '', criticalProcesses: '', outsourcedProcesses: '' },
+      { name: '', skus: '' },
     ]);
+  };
+
+  const removeBrand = (index) => {
+    if (formData.brands.length <= 1) return;
+    const updated = formData.brands.filter((_, i) => i !== index);
+    handleFieldChange('brands', updated);
   };
 
   const updateBrand = (index, field, value) => {
@@ -107,7 +149,7 @@ export default function CompanyDetailsPage() {
       <QuestionCard title={t('orgBasicDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <FormField label={t('legalNameEn')} required error={errors.legalNameEn}>
-            <TextInput value={formData.legalNameEn} onChange={(v) => handleFieldChange('legalNameEn', v)} placeholder="interlink" hasError={!!errors.legalNameEn} />
+            <TextInput value={formData.legalNameEn} onChange={(v) => handleFieldChange('legalNameEn', v)} placeholder="Enter company name in English" hasError={!!errors.legalNameEn} />
           </FormField>
           <FormField label={t('legalNameAr')} required error={errors.legalNameAr}>
             <TextInput value={formData.legalNameAr} onChange={(v) => handleFieldChange('legalNameAr', v)} placeholder="أدخل اسم الشركة بالعربية" hasError={!!errors.legalNameAr} arabicOnly />
@@ -115,14 +157,14 @@ export default function CompanyDetailsPage() {
           <FormField label={t('crNumber')} required error={errors.crNumber}>
             <TextInput value={formData.crNumber} onChange={(v) => handleFieldChange('crNumber', v)} placeholder="0980000000" hasError={!!errors.crNumber} />
           </FormField>
-          <FormField label={t('vatYear')} required error={errors.vatYear}>
+          <FormField label="VAT / Tax Registration Number *" required error={errors.vatYear}>
             <TextInput value={formData.vatYear} onChange={(v) => handleFieldChange('vatYear', v)} placeholder="89750000" hasError={!!errors.vatYear} />
           </FormField>
-          <FormField label={t('orgType')} required error={errors.orgType}>
-            <SelectInput value={formData.orgType} onChange={(v) => handleFieldChange('orgType', v)} options={['LLC', 'Private', 'JSC', 'Partnership', 'Sole Proprietorship', 'Government', 'Non-Profit']} placeholder="LLC" hasError={!!errors.orgType} />
+          <FormField label="Type of Organization *" required error={errors.orgType}>
+            <TextInput value={formData.orgType} onChange={(v) => handleFieldChange('orgType', v)} placeholder="e.g. LLC, Private, JSC, Partnership" hasError={!!errors.orgType} />
           </FormField>
-          <FormField label={t('sector')} required error={errors.sector}>
-            <SelectInput value={formData.sector} onChange={(v) => handleFieldChange('sector', v)} options={['Manufacturing', 'Food Processing', 'Logistics', 'Technology', 'Energy', 'Healthcare', 'Construction', 'Agriculture', 'Mining', 'Hospitality', 'Retail', 'Other']} placeholder="Sector" hasError={!!errors.sector} />
+          <FormField label="Industry / Sector *" required error={errors.sector}>
+            <TextInput value={formData.sector} onChange={(v) => handleFieldChange('sector', v)} placeholder="e.g. Manufacturing, Oil & Gas, Technology" hasError={!!errors.sector} />
           </FormField>
         </div>
       </QuestionCard>
@@ -130,20 +172,20 @@ export default function CompanyDetailsPage() {
       {/* ===== CARD 2: Address and Contact Details ===== */}
       <QuestionCard title={t('addressContactDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <FormField label={t('headOfficeEn')} required error={errors.headOfficeEn}>
+          <FormField label="Head Office Address (English) *" required error={errors.headOfficeEn}>
             <TextInput value={formData.headOfficeEn} onChange={(v) => handleFieldChange('headOfficeEn', v)} placeholder="Enter address in English" hasError={!!errors.headOfficeEn} />
           </FormField>
-          <FormField label={t('headOfficeAr')} required error={errors.headOfficeAr}>
+          <FormField label="Head Office Address (Arabic) *" required error={errors.headOfficeAr}>
             <TextInput value={formData.headOfficeAr} onChange={(v) => handleFieldChange('headOfficeAr', v)} placeholder="أدخل العنوان بالعربية" hasError={!!errors.headOfficeAr} arabicOnly />
           </FormField>
-          <FormField label={t('website')}>
-            <TextInput value={formData.website} onChange={(v) => handleFieldChange('website', v)} placeholder="https://example.com" type="url" />
+          <FormField label="National Address (KSA)" hint="optional">
+            <TextInput value={formData.nationalAddressKsa} onChange={(v) => handleFieldChange('nationalAddressKsa', v)} placeholder="National address in KSA" />
           </FormField>
-          <FormField label={t('websiteAr')}>
-            <TextInput value={formData.websiteAr} onChange={(v) => handleFieldChange('websiteAr', v)} placeholder="https://example.com/ar" />
+          <FormField label="Detailed Address" hint="optional">
+            <TextInput value={formData.detailedAddress} onChange={(v) => handleFieldChange('detailedAddress', v)} placeholder="Detailed address" />
           </FormField>
           <div className="md:col-span-2">
-            <FormField label={t('contactInfo')} required error={errors.contactInfo}>
+            <FormField label="Contact Information *" required error={errors.contactInfo}>
               <TextInput value={formData.contactInfo} onChange={(v) => handleFieldChange('contactInfo', v)} placeholder="Phone, email, or other contact details" hasError={!!errors.contactInfo} />
             </FormField>
           </div>
@@ -154,12 +196,12 @@ export default function CompanyDetailsPage() {
       <QuestionCard title={t('legalDocs')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[
-            { labelKey: 'crDocument', field: 'crDocument' },
-            { labelKey: 'vatDocument', field: 'vatDocument' },
-            { labelKey: 'mroDocument', field: 'mroDocument' },
-            { labelKey: 'moaDocument', field: 'moaDocument' },
-          ].map(({ labelKey, field }) => (
-            <FormField key={field} label={t(labelKey)} required error={errors[field]}>
+            { label: 'Company Registration Number / CR Document *', field: 'crDocument' },
+            { label: 'VAT / Tax Registration Document *', field: 'vatDocument' },
+            { label: 'National Address (KSA) Document *', field: 'nationalAddressDoc' },
+            { label: 'IBAN Document *', field: 'ibanDocument' },
+          ].map(({ label, field }) => (
+            <FormField key={field} label={label} required error={errors[field]}>
               <FileUploadBox
                 onChange={(e) => handleFieldChange(field, e.target.files[0])}
                 fileName={formData[field]?.name}
@@ -182,9 +224,57 @@ export default function CompanyDetailsPage() {
             </FormField>
           </div>
 
-          <FormField label={t('multisiteQuestion')} required error={errors.multisite}>
+          <FormField label="Does your organization operate across multiple sites? *" required error={errors.multisite}>
             <RadioGroup value={formData.multisite} onChange={(v) => handleFieldChange('multisite', v)} options={yesNoOptions} />
           </FormField>
+
+          {/* Site Details — only when multisite = Yes */}
+          {formData.multisite === 'Yes' && (
+            <div className="border border-[#E5E7EB] rounded-2xl p-5 bg-[#FAFAFA] space-y-4">
+              <p className="text-sm font-semibold text-[#1B4332]">Site Details</p>
+              {formData.siteDetails.map((site, idx) => (
+                <div key={idx} className="border border-[#E5E7EB] rounded-xl p-4 bg-white relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-[#2D6A4F] uppercase">Site {idx + 1}</p>
+                    {formData.siteDetails.length > 1 && (
+                      <button type="button" onClick={() => removeSite(idx)} className="text-red-500 hover:text-red-700 cursor-pointer p-1">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField label="Site Name (English)">
+                      <TextInput value={site.nameEn} onChange={(v) => updateSite(idx, 'nameEn', v)} placeholder="Site name in English" />
+                    </FormField>
+                    <FormField label="Site Name (Arabic)">
+                      <TextInput value={site.nameAr} onChange={(v) => updateSite(idx, 'nameAr', v)} placeholder="اسم الموقع بالعربية" arabicOnly />
+                    </FormField>
+                    <FormField label="Site Address (English)">
+                      <TextInput value={site.addressEn} onChange={(v) => updateSite(idx, 'addressEn', v)} placeholder="Address in English" />
+                    </FormField>
+                    <FormField label="Site Address (Arabic)">
+                      <TextInput value={site.addressAr} onChange={(v) => updateSite(idx, 'addressAr', v)} placeholder="العنوان بالعربية" arabicOnly />
+                    </FormField>
+                    <FormField label="Activities Covered (English)">
+                      <TextInput value={site.activitiesEn} onChange={(v) => updateSite(idx, 'activitiesEn', v)} placeholder="Activities in English" />
+                    </FormField>
+                    <FormField label="Activities Covered (Arabic)">
+                      <TextInput value={site.activitiesAr} onChange={(v) => updateSite(idx, 'activitiesAr', v)} placeholder="الأنشطة بالعربية" arabicOnly />
+                    </FormField>
+                    <FormField label="Site Scope (English)">
+                      <TextInput value={site.scopeEn} onChange={(v) => updateSite(idx, 'scopeEn', v)} placeholder="Scope in English" />
+                    </FormField>
+                    <FormField label="Site Scope (Arabic)">
+                      <TextInput value={site.scopeAr} onChange={(v) => updateSite(idx, 'scopeAr', v)} placeholder="النطاق بالعربية" arabicOnly />
+                    </FormField>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={addSite} className="w-full py-2.5 bg-[#2D6A4F] hover:bg-[#1B4332] text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer">
+                <Plus size={16} /> Add New Site
+              </button>
+            </div>
+          )}
         </div>
       </QuestionCard>
 
@@ -217,26 +307,48 @@ export default function CompanyDetailsPage() {
 
       {/* ===== CARD 6: Brand Details ===== */}
       <QuestionCard title={t('brandDetails')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div className="md:col-span-2">
+            <FormField label="Core Business Activities *" required error={errors.coreBusinessActivities}>
+              <TextInput value={formData.coreBusinessActivities} onChange={(v) => handleFieldChange('coreBusinessActivities', v)} placeholder="Describe core business activities" hasError={!!errors.coreBusinessActivities} />
+            </FormField>
+          </div>
+          <FormField label="Key Products / Services (English) *" required error={errors.keyProductsEn}>
+            <TextInput value={formData.keyProductsEn} onChange={(v) => handleFieldChange('keyProductsEn', v)} placeholder="Products in English" hasError={!!errors.keyProductsEn} />
+          </FormField>
+          <FormField label="Key Products / Services (Arabic) *" required error={errors.keyProductsAr}>
+            <TextInput value={formData.keyProductsAr} onChange={(v) => handleFieldChange('keyProductsAr', v)} placeholder="المنتجات بالعربية" hasError={!!errors.keyProductsAr} arabicOnly />
+          </FormField>
+        </div>
+
+        <div className="flex flex-col gap-5 mb-5">
+          <FormField label="Critical Processes (Manufacturing, IT, Logistics, etc.) *" required error={errors.criticalProcesses}>
+            <RadioGroup value={formData.criticalProcesses} onChange={(v) => handleFieldChange('criticalProcesses', v)} options={yesNoOptions} />
+          </FormField>
+          <FormField label="Outsourced Processes (if any) *" required error={errors.outsourcedProcesses}>
+            <RadioGroup value={formData.outsourcedProcesses} onChange={(v) => handleFieldChange('outsourcedProcesses', v)} options={yesNoOptions} />
+          </FormField>
+        </div>
+
+        {/* Brands */}
         {formData.brands.map((brand, idx) => (
-          <div key={idx} className="border border-[#E5E7EB] rounded-2xl p-5 mb-4 bg-[#FAFAFA]">
-            <p className="text-xs font-semibold text-[#2D6A4F] uppercase tracking-wide mb-4">Brand {idx + 1}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
-              <FormField label="List Brands/Entities">
+          <div key={idx} className="border border-[#E5E7EB] rounded-2xl p-5 mb-4 bg-[#FAFAFA] relative">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-semibold text-[#2D6A4F] uppercase tracking-wide">
+                {idx === 0 ? 'Primary Brand' : `Brand ${idx + 1}`}
+              </p>
+              {formData.brands.length > 1 && (
+                <button type="button" onClick={() => removeBrand(idx)} className="text-red-500 hover:text-red-700 cursor-pointer p-1">
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <FormField label="Brand Name *">
                 <TextInput value={brand.name} onChange={(v) => updateBrand(idx, 'name', v)} placeholder="Brand name" />
               </FormField>
-              <FormField label="Key Products / Services (English)">
-                <TextInput value={brand.productsEn} onChange={(v) => updateBrand(idx, 'productsEn', v)} placeholder="Products in English" />
-              </FormField>
-              <FormField label="Key Products / Services (Arabic)" className="md:col-span-2">
-                <TextInput value={brand.productsAr} onChange={(v) => updateBrand(idx, 'productsAr', v)} placeholder="المنتجات بالعربية" arabicOnly />
-              </FormField>
-            </div>
-            <div className="flex flex-col gap-5">
-              <FormField label="Critical Processes (Manufacturing)">
-                <RadioGroup value={brand.criticalProcesses} onChange={(v) => updateBrand(idx, 'criticalProcesses', v)} options={yesNoOptions} />
-              </FormField>
-              <FormField label="Outsourced Processes">
-                <RadioGroup value={brand.outsourcedProcesses} onChange={(v) => updateBrand(idx, 'outsourcedProcesses', v)} options={yesNoOptions} />
+              <FormField label="Brand SKUs *">
+                <TextInput value={brand.skus} onChange={(v) => updateBrand(idx, 'skus', v)} placeholder="Number of SKUs" type="number" />
               </FormField>
             </div>
           </div>
@@ -247,7 +359,7 @@ export default function CompanyDetailsPage() {
           className="w-full py-3 bg-[#2D6A4F] hover:bg-[#1B4332] text-white text-sm font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
           <Plus size={18} />
-          {t('addBrand')}
+          Add New Brand
         </button>
       </QuestionCard>
 
@@ -265,8 +377,6 @@ export default function CompanyDetailsPage() {
               <RadioGroup value={formData[field]} onChange={(v) => handleFieldChange(field, v)} options={yesNoOptions} />
             </FormField>
           ))}
-
-          {/* Inset Sub-Card Container for Other Certifications */}
           <div className="border border-[#E5E7EB] rounded-2xl p-5 bg-white mt-2 shadow-xs">
             <label className="block text-sm font-medium text-[#374151] mb-2">
               Other certifications <span className="text-[#6B7280] font-normal">(optional)</span>

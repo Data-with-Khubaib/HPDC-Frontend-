@@ -4,8 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentApplicationsTable from '@/components/dashboard/RecentApplicationsTable';
-import { applications } from '@/lib/mock-data/applications';
 import { useLanguage } from '@/components/layout/LanguageContext';
+import { dashboardApi } from '@/lib/api';
 export default function DashboardPage() {
   const { t } = useLanguage();
   const [statsData, setStatsData] = useState([]);
@@ -14,22 +14,15 @@ export default function DashboardPage() {
     async function fetchDashboardStats() {
       try {
         setLoading(true);
-        const res = await fetch('https://6a9523f70e895b145e5fb03b.mockapi.io/Certificates');
-        const certificates = await res.json();
-        const safeCertificates = Array.isArray(certificates) ? certificates : [];
-        // 2. Helper function to count statuses safely (handles both 'Status' & 'status')
-        const countStatus = (target) =>
-          safeCertificates.filter((item) => {
-            const s = (item.Status || item.status || '').toString().toLowerCase();
-            return s === target.toLowerCase();
-          }).length;
-        // 3. Stats Cards Structure calculate karein
+        const res = await dashboardApi.getCompanyMetrics('me');
+        const metrics = res.data || {};
+
         const calculatedStats = [
           {
             id: 'total-applications',
             label: 'Total Applications',
             labelKey: 'totalApplications',
-            value: applications.length,
+            value: metrics.total_applications || 0,
             icon: 'ClipboardList',
             color: 'green',
           },
@@ -37,7 +30,7 @@ export default function DashboardPage() {
             id: 'rejected-applications',
             label: 'Rejected Applications',
             labelKey: 'rejectedApplications',
-            value: applications.filter((app) => app.status === 'Rejected').length,
+            value: metrics.rejected_count || 0,
             icon: 'XCircle',
             color: 'red',
           },
@@ -45,7 +38,7 @@ export default function DashboardPage() {
             id: 'active-certificates',
             label: 'Active Certificates',
             labelKey: 'activeCertificates',
-            value: countStatus('valid'),
+            value: metrics.active_certificates || 0,
             icon: 'FileCheck',
             color: 'green',
           },
@@ -53,7 +46,7 @@ export default function DashboardPage() {
             id: 'suspended-certificates',
             label: 'Suspended Certificates',
             labelKey: 'suspendedCertificates',
-            value: countStatus('suspend') + countStatus('suspended'),
+            value: metrics.suspended_certificates || 0,
             icon: 'FileWarning',
             color: 'amber',
           },
@@ -61,7 +54,7 @@ export default function DashboardPage() {
             id: 'withdrawn-certificates',
             label: 'Withdrawn Certificates',
             labelKey: 'withdrawnCertificates',
-            value: countStatus('withdrawn'),
+            value: metrics.withdrawn_certificates || 0,
             icon: 'FileX',
             color: 'red',
           },
@@ -69,7 +62,7 @@ export default function DashboardPage() {
             id: 'expired-certificates',
             label: 'Expired Certificates',
             labelKey: 'expiredCertificates',
-            value: countStatus('expired'),
+            value: metrics.expired_certificates || 0,
             icon: 'FileClock',
             color: 'red',
           },

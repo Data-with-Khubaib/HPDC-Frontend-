@@ -1,142 +1,191 @@
 'use client';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWizard } from '@/components/apply/WizardContext';
 import { useLanguage } from '@/components/layout/LanguageContext';
-import FormField from '@/components/apply/FormField';
-import TextInput from '@/components/apply/TextInput';
+import { SectionTitle, QuestionCard } from '@/components/apply/QuestionCard';
 import RadioGroup from '@/components/apply/RadioGroup';
-import { QuestionCard } from '@/components/apply/QuestionCard';
-import { CheckCircle } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
-function SurveyQuestion({ id, question, type = 'radio' }) {
-  const { formData, updateSurvey } = useWizard();
+export default function Section3Page() {
+  const router = useRouter();
+  const { formData, updateSurvey, updatePartialExplanation } = useWizard();
   const { t } = useLanguage();
-  const value = formData.survey[id] || '';
+  const [errors, setErrors] = useState({});
 
-  if (type === 'textarea') {
-    return (
-      <div className="border border-[#E5E7EB] rounded-2xl p-5 bg-white mb-4 shadow-xs">
-        <FormField label={question}>
-          <TextInput
-            value={value}
-            onChange={(v) => updateSurvey(id, v)}
-            placeholder="Short-answer text"
-          />
-        </FormField>
-      </div>
-    );
-  }
-
-  const options = [
+  const yesPartialNoOptions = [
     { val: 'Yes', label: t('yes') },
     { val: 'Partial', label: t('partial') },
     { val: 'No', label: t('no') },
   ];
 
-  return (
-    <FormField label={question} className="mb-6">
-      <RadioGroup
-        value={value}
-        onChange={(v) => updateSurvey(id, v)}
-        options={options}
-      />
-    </FormField>
-  );
-}
+  const orgQuestions = [
+    { id: 34, title: '1. Board Independence and Diversity', text: 'Does the organization have an independent board of directors (or equivalent governing body) with a commitment to diversity (e.g., gender, expertise, background)?' },
+    { id: 35, title: '2. Executive Compensation', text: 'Is executive compensation linked to sustainability or ESG performance targets?' },
+    { id: 36, title: '3. Shareholder/Stakeholder Rights', text: 'Are there established mechanisms to protect minority shareholder rights and ensure transparent communication with all key stakeholders?' },
+  ];
 
-export default function Section3Page() {
-  const router = useRouter();
-  const { clearForm } = useWizard();
-  const { t } = useLanguage();
+  const riskQuestions = [
+    { id: 37, title: '1. Enterprise Risk Management (ERM)', text: 'Does the organization have a formal ERM framework that integrates ESG risks (e.g., climate change, regulatory changes, supply chain disruptions)?' },
+    { id: 38, title: '2. Business Continuity', text: 'Is there a tested business continuity and disaster recovery plan in place?' },
+  ];
+
+  const complianceQuestions = [
+    { id: 39, title: '1. Code of Conduct and Ethics', text: 'Does the organization have a formal Code of Conduct that applies to all employees, executives, and directors, covering anti-corruption, anti-bribery, and conflict of interest?' },
+    { id: 40, title: '2. Whistleblower Protection', text: 'Is there a formal whistleblower policy and an anonymous reporting channel for ethical or legal violations, ensuring protection against retaliation?' },
+  ];
+
+  const narrativeQuestions = [
+    { id: 24, title: 'How does the Board of Directors oversee ESG and sustainability initiatives?' },
+    { id: 25, title: 'Describe the organization\'s approach to managing conflicts of interest.' },
+    { id: 26, title: 'Provide details on how ESG risks are identified, assessed, and managed within the ERM framework.' },
+    { id: 27, title: 'How frequently does the organization conduct internal or external audits of its sustainability or ESG performance?' },
+    { id: 28, title: 'Describe the training provided to employees on the Code of Conduct, anti-corruption, and anti-bribery policies.' },
+    { id: 29, title: 'How does the organization ensure compliance with local and international trade laws and sanctions?' },
+    { id: 30, title: 'Are there any recent or pending legal actions against the organization related to environmental, social, or governance issues? If yes, please explain.' },
+    { id: 31, title: 'How does the organization protect data privacy and cybersecurity? (e.g., compliance with GDPR, local data protection laws).' },
+    { id: 32, title: 'Does the organization engage in public policy advocacy or lobbying? If so, how is this aligned with its ESG commitments?' },
+    { id: 33, title: 'How are the organization\'s tax practices aligned with its overall commitment to transparency and social responsibility?' },
+  ];
+
+  const handleNext = () => {
+    const newErrors = {};
+    let hasError = false;
+
+    // Validate radio questions
+    [...orgQuestions, ...riskQuestions, ...complianceQuestions].forEach((q) => {
+      const answer = formData.survey[q.id];
+      if (!answer) {
+        newErrors[q.id] = 'This field is required';
+        hasError = true;
+      } else if (answer === 'Partial') {
+        const explanation = formData.partialExplanations?.[q.id];
+        if (!explanation || !explanation.trim()) {
+          newErrors[`${q.id}_partial`] = 'Please provide an explanation for Partial';
+          hasError = true;
+        }
+      }
+    });
+
+    // Validate narrative questions
+    narrativeQuestions.forEach((q) => {
+      if (!formData.survey[q.id] || !formData.survey[q.id].trim()) {
+        newErrors[q.id] = 'This field is required';
+        hasError = true;
+      }
+    });
+
+    if (hasError) {
+      setErrors(newErrors);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setErrors({});
+      router.push('/company/apply/section-4');
+    }
+  };
+
+  const renderRadioQuestion = (q) => {
+    const answer = formData.survey[q.id] || '';
+    const showPartial = answer === 'Partial';
+    const partialError = errors[`${q.id}_partial`];
+
+    return (
+      <QuestionCard key={q.id} title={q.title}>
+        <div className="flex flex-col gap-4">
+          <p className="text-sm font-medium text-gray-800">{q.text}</p>
+          <div className="mt-2">
+            <RadioGroup
+              value={answer}
+              onChange={(val) => {
+                updateSurvey(q.id, val);
+                if (errors[q.id]) setErrors((prev) => ({ ...prev, [q.id]: null }));
+              }}
+              options={yesPartialNoOptions}
+            />
+            {errors[q.id] && <p className="text-xs text-red-500 mt-2">{errors[q.id]}</p>}
+          </div>
+          
+          {showPartial && (
+            <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl animate-slide-up">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Please explain your partial compliance <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={formData.partialExplanations?.[q.id] || ''}
+                onChange={(e) => {
+                  updatePartialExplanation(q.id, e.target.value);
+                  if (partialError) setErrors((prev) => ({ ...prev, [`${q.id}_partial`]: null }));
+                }}
+                className={`w-full p-3 text-sm bg-white border ${partialError ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#2D6A4F]'} rounded-xl focus:outline-none transition-colors min-h-[100px]`}
+                placeholder="Provide details about what parts are implemented and what is missing..."
+              />
+              {partialError && <p className="text-xs text-red-500 mt-2">{partialError}</p>}
+            </div>
+          )}
+        </div>
+      </QuestionCard>
+    );
+  };
 
   return (
     <div className="max-w-4xl mx-auto animate-slide-up pb-12">
-      {/* Header */}
-      <div className="flex flex-col items-center justify-center space-y-2 text-center pb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[#1B4332]">{t('esgSurvey')}</h1>
-        <p className="text-sm sm:text-base text-[#42716C]">{t('surveySubtitle')}</p>
+      <div className="flex flex-col items-center justify-center space-y-2 text-center pb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1B4332]">Section 3: Governance</h1>
+        <p className="text-sm sm:text-base text-[#42716C]">
+          Please answer the following questions regarding your corporate governance.
+        </p>
       </div>
 
-      {/* Progress Bar & Status */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white rounded-2xl border border-[#E5E7EB] p-4 px-6 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-[#2D6A4F]">{t('section3Of4')}</span>
-          <span className="text-sm text-[#6B7280]">: {t('esgAssessment')}</span>
+      <div className="space-y-8">
+        <div>
+          <SectionTitle>Sustainability Governance & Reporting</SectionTitle>
+          <div className="space-y-6">
+            {narrativeQuestions.map((q) => (
+              <QuestionCard key={q.id} title={q.title}>
+                <textarea
+                  value={formData.survey[q.id] || ''}
+                  onChange={(e) => {
+                    updateSurvey(q.id, e.target.value);
+                    if (errors[q.id]) setErrors(prev => ({ ...prev, [q.id]: null }));
+                  }}
+                  className={`w-full p-4 text-sm bg-white border ${errors[q.id] ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB] focus:border-[#1B4332]'} rounded-xl focus:outline-none transition-colors min-h-[120px]`}
+                  placeholder="Your answer..."
+                />
+                {errors[q.id] && <p className="text-xs text-red-500 mt-2">{errors[q.id]}</p>}
+              </QuestionCard>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-[#E53E3E] font-medium">{t('indicatesRequired')}</span>
-          <span className="flex items-center gap-1.5 text-xs text-[#2D6A4F] font-semibold">
-            <CheckCircle size={14} /> {t('allChangesSaved')}
-          </span>
+
+        <div>
+          <SectionTitle>Organizational Governance</SectionTitle>
+          <div className="space-y-6">
+            {orgQuestions.map(renderRadioQuestion)}
+          </div>
+        </div>
+
+        <div>
+          <SectionTitle>Risk Management</SectionTitle>
+          <div className="space-y-6">
+            {riskQuestions.map(renderRadioQuestion)}
+          </div>
+        </div>
+
+        <div>
+          <SectionTitle>Compliance Management</SectionTitle>
+          <div className="space-y-6">
+            {complianceQuestions.map(renderRadioQuestion)}
+          </div>
         </div>
       </div>
 
-      {/* Question Cards */}
-      <QuestionCard title="Sustainability Governance and Business Conduct">
-        <SurveyQuestion id="s3_gov_1" type="textarea" question="Who is accountable for sustainability, how are responsibilities allocated, and how is management oversight maintained?" />
-        <SurveyQuestion id="s3_gov_2" type="textarea" question="How does your organization identify and prioritize key sustainability topics, business conduct risks, legal/regulatory obligations?" />
-        <SurveyQuestion id="s3_gov_3" type="textarea" question="What are your sustainability objectives, priorities, action plans, responsibilities, and timelines?" />
-        <SurveyQuestion id="s3_gov_4" type="textarea" question="How is sustainability information collected, records maintained, who is responsible, and how is accuracy checked?" />
-        <SurveyQuestion id="s3_gov_5" type="textarea" question="How are sustainability matters reviewed internally, outcomes communicated, and issues converted to actions?" />
-        <SurveyQuestion id="s3_gov_6" type="textarea" question="What are the main business conduct, anti-corruption, anti-bribery declarations, training, reporting, and speak-up controls?" />
-        <SurveyQuestion id="s3_gov_7" type="textarea" question="Have there been any convictions or fines during the reporting period?" />
-        <SurveyQuestion id="s3_gov_8" type="textarea" question="How do sustainability matters influence strategy, business planning, and major investments?" />
-        <SurveyQuestion id="s3_gov_9" type="textarea" question="Provide a detailed description of sustainability practices, policies, initiatives, and responsibilities." />
-        <SurveyQuestion id="s3_gov_10" type="textarea" question="How is governing body composition recorded, reviewed, and considered in planning/nominations?" />
-      </QuestionCard>
-
-      <QuestionCard title="Organizational Governance">
-        <SurveyQuestion id="s3_org_1" question="Is the governing body structured to meet stakeholder expectations?" />
-        <SurveyQuestion id="s3_org_2" question="Is the governing body competent and accountable for oversight?" />
-        <SurveyQuestion id="s3_org_3" question="Does the governing body support long-term sustainability and value creation?" />
-      </QuestionCard>
-
-      <QuestionCard title="Risk Management">
-        <SurveyQuestion id="s3_risk_1" question="Does your organization have a risk management framework?" />
-        <SurveyQuestion id="s3_risk_2" question="Are risk identification, assessment, and treatment performed?" />
-      </QuestionCard>
-
-      <QuestionCard title="Compliance Management">
-        <SurveyQuestion id="s3_comp_1" question="Is a compliance obligations register maintained?" />
-        <SurveyQuestion id="s3_comp_2" question="Are compliance risks assessed and managed?" />
-      </QuestionCard>
-
-      <QuestionCard title="Privacy & Information Security">
-        <SurveyQuestion id="s3_privacy_1" question="Are information security risks and vulnerabilities assessed?" />
-        <SurveyQuestion id="s3_privacy_2" question="Are privacy and information security controls implemented?" />
-      </QuestionCard>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-6 mb-8 py-4">
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => router.push('/company/apply/section-2')}
-            className="px-5 py-2.5 text-sm font-medium text-[#2D6A4F] border border-[#2D6A4F] rounded-xl hover:bg-[#F0FDF4] transition-colors cursor-pointer"
-          >
-            ← {t('back')}
-          </button>
-          <button
-            type="button"
-            onClick={clearForm}
-            className="px-5 py-2.5 text-sm font-medium text-[#6B7280] hover:text-[#111827] hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
-          >
-            {t('clearForm')}
-          </button>
-          <button
-            type="button"
-            className="px-5 py-2.5 text-sm font-medium text-[#2D6A4F] border border-[#2D6A4F] rounded-xl hover:bg-[#F0FDF4] transition-colors cursor-pointer"
-          >
-            {t('markFillLater')}
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={() => router.push('/company/apply/section-4')}
-          className="px-8 py-[#1B4332] bg-[#2D6A4F] hover:bg-[#1B4332] text-white text-sm font-bold rounded-2xl transition-colors cursor-pointer"
-        >
-          {t('next')} →
-        </button>
+      <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+        <Button variant="outline" onClick={() => router.push('/company/apply/section-2')}>
+          ← Back
+        </Button>
+        <Button variant="solid" onClick={handleNext}>
+          Next Section →
+        </Button>
       </div>
     </div>
   );

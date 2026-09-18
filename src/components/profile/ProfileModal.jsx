@@ -1,11 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import { currentUser } from '@/lib/mock-data/user';
+import { useAuthStore } from '@/lib/authStore';
 import { Mail, Building2, Phone, Globe, ShieldCheck, Eye, EyeOff, LogOut } from 'lucide-react';
 
 export default function ProfileModal({ isOpen, onClose }) {
+  const { user } = useAuthStore();
+  const currentUser = user || { name: 'Company User', email: 'user@example.com', company: 'Company', phone: 'N/A', country: 'N/A', sector: 'N/A', initials: 'CO' };
+  const initials = currentUser.name ? currentUser.name.substring(0, 2).toUpperCase() : (currentUser.initials || 'CO');
+
   const [view, setView] = useState('profile'); // 'profile' | 'password'
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);

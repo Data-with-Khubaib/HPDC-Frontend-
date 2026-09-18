@@ -109,9 +109,9 @@ export default function ApplicationTable() {
                 </tr>
               ) : (
                 applications.map((app) => {
-                  const appNo = app.applicationNo || app.ApplicationNo || '-';
-                  const compName = app.companyName || app.CompanyName || '-';
-                  const subDate = app.submittedDate || app.SubmittedDate || app.createdAt;
+                  const appNo = app.applicationNo || app.application_no || app.ApplicationNo || '-';
+                  const compName = app.companyName || app.company_name || app.CompanyName || '-';
+                  const subDate = app.submittedDate || app.submitted_at || app.SubmittedDate || app.createdAt;
 
                   return (
                     <tr
@@ -126,10 +126,7 @@ export default function ApplicationTable() {
                         {compName.length > 20 ? compName.substring(0, 20) + '...' : compName}
                       </td>
                       <td className="py-4 px-4">
-                        <Badge status={
-                          app.status === 'Submitted ' ? 'Submitted' :
-                            app.status ? app.status.charAt(0).toUpperCase() + app.status.slice(1) : 'Valid'
-                        } />
+                        <Badge status={app.status || 'Submitted'} />
                       </td>
                       <td className="py-4 px-4 text-sm text-[#6B7280]">
                         {formatDate(subDate)}
@@ -149,11 +146,26 @@ export default function ApplicationTable() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.push(`/company/applications/${app.id}`);
+                            const cert = app.certificates && app.certificates.length > 0 ? app.certificates[0] : null;
+                            if (cert && cert.paid) {
+                              router.push(`/company/certificates/${cert.id}`);
+                            } else if (app.status === 'Approved') {
+                              router.push(`/company/certificates/payment?appId=${app.id}`);
+                            } else {
+                              router.push(`/company/applications/${app.id}`);
+                            }
                           }}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#1B4332] hover:bg-[#2D6A4F] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                          className={`inline-flex items-center gap-2 px-4 py-2 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                            app.status === 'Approved' ? 'bg-[#1B4332] hover:bg-[#2D6A4F]' : 'bg-[#1B4332] hover:bg-[#2D6A4F]'
+                          }`}
                         >
-                          {t('viewDetails')}
+                          {(() => {
+                            const cert = app.certificates && app.certificates.length > 0 ? app.certificates[0] : null;
+                            if (cert && cert.paid) return 'View Certificate';
+                            if (app.status === 'Approved') return 'Generate Certificate';
+                            if (app.status === 'Conditional Approve') return 'Take Action';
+                            return t('viewDetails');
+                          })()}
                           <ArrowRight size={14} />
                         </button>
                       </td>

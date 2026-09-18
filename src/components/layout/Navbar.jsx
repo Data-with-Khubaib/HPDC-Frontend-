@@ -1,15 +1,19 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { Globe, Bell, ChevronDown } from 'lucide-react';
-import { currentUser } from '@/lib/mock-data/user';
+import { useAuthStore } from '@/lib/authStore';
 import { useLanguage } from './LanguageContext';
 
 export default function Navbar({ title = 'Dashboard', onProfileClick }) {
   const [langOpen, setLangOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { language, setLanguage, t, isRtl } = useLanguage();
+  const { user } = useAuthStore();
   const langRef = useRef(null);
   const notifRef = useRef(null);
+  
+  const currentUser = user || { name: 'Company User', email: 'user@example.com', company: 'Company', initials: 'CO' };
+  const initials = currentUser.name ? currentUser.name.substring(0, 2).toUpperCase() : (currentUser.initials || 'CO');
 
   useEffect(() => {
     function handleClick(e) {
@@ -85,7 +89,7 @@ export default function Navbar({ title = 'Dashboard', onProfileClick }) {
           className={`flex items-center gap-3 ${isRtl ? 'pr-3 border-r' : 'pl-3 border-l'} border-[#E5E7EB] cursor-pointer`}
         >
           <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-            <span className="text-sm font-bold text-[#1B4332]">{currentUser.initials}</span>
+            <span className="text-sm font-bold text-[#1B4332]">{initials}</span>
           </div>
           <div className={`hidden sm:block ${isRtl ? 'text-right' : 'text-left'}`}>
             <p className="text-sm font-semibold text-[#111827]">{currentUser.name}</p>

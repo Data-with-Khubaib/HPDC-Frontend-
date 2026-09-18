@@ -16,8 +16,8 @@ export default function RecentApplicationsTable() {
     if (query) {
       const q = query.toLowerCase();
       list = list.filter((app) => {
-        const appNo = app.applicationNo.toLowerCase();
-        const comp = app.companyName.toLowerCase();
+        const appNo = String(app.application_no || app.applicationNo || app.ApplicationNo || '').toLowerCase();
+        const comp = String(app.company_name || app.companyName || app.CompanyName || '').toLowerCase();
         return appNo.includes(q) || comp.includes(q);
       });
     }
@@ -47,8 +47,8 @@ export default function RecentApplicationsTable() {
           </div>
         ) : (
           displayApps.map((app) => {
-            const appNo = app.applicationNo || app.ApplicationNo || '-';
-            const compName = app.companyName || app.CompanyName || '-';
+            const appNo = app.application_no || app.applicationNo || app.ApplicationNo || '-';
+            const compName = app.company_name || app.companyName || app.CompanyName || '-';
             const appStatus = app.status || app.Status || 'Submitted';
 
             return (

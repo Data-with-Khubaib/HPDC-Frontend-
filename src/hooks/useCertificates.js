@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { certificateApi } from '@/lib/api';
 const certificatesCache = {};
 
 export function useCertificates() {
@@ -26,22 +27,20 @@ export function useCertificates() {
         setLoading(true);
         setError(null);
 
-        const statusParam = statusFilter !== 'all' ? `&status=${statusFilter}` : '';
-        const response = await fetch(
-          `https://6a9523f70e895b145e5fb03b.mockapi.io/Certificates?page=${page}&limit=${limit}&search=${query}${statusParam}`
-        );
+        const params = {
+          page,
+          limit,
+          search: query || undefined,
+          status: statusFilter !== 'all' ? statusFilter : undefined
+        };
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch certificates data');
-        }
-
-        const data = await response.json();
-
-        setCertificates(data);
-        const totalResponse = await fetch(`https://6a9523f70e895b145e5fb03b.mockapi.io/Certificates`);
-        const allData = await totalResponse.json();
-        setTotalItems(allData.length);
-        setData(allData);
+        const resData = await certificateApi.getAll(params);
+        
+        const payloadData = resData.data || {};
+        
+        setCertificates(payloadData.data || []);
+        setTotalItems(payloadData.pagination?.total || payloadData.data?.length || 0);
+        setData(payloadData.data || []);
       } catch (err) {
         setError(err.message);
       } finally {

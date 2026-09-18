@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { applicationApi } from '@/lib/api';
 
 export function useApplications() {
   const [applications, setApplications] = useState([]);
@@ -20,24 +21,23 @@ export function useApplications() {
         setLoading(true);
         setError(null);
 
-        const statusParam = statusFilter !== 'all' ? `&status=${statusFilter}` : '';
-        const response = await fetch(
-          `https://6a9523f70e895b145e5fb03b.mockapi.io/Applications?page=${page}&limit=${limit}&search=${query}${statusParam}`
-        );
+        const params = {
+          page,
+          limit,
+          search: query || undefined,
+          status: statusFilter !== 'all' ? statusFilter : undefined
+        };
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch applications data');
-        }
-
-        const resData = await response.json();
-        setApplications(resData);
-
-        const totalResponse = await fetch(`https://6a9523f70e895b145e5fb03b.mockapi.io/Applications`);
-        const allData = await totalResponse.json();
-        setTotalItems(allData.length);
-        setData(allData);
+        const resData = await applicationApi.getAll(params);
+        
+        // The backend returns { success: true, data: { data: [...], pagination: {...} } }
+        const payloadData = resData.data || {};
+        
+        setApplications(payloadData.data || []);
+        setTotalItems(payloadData.pagination?.total || payloadData.data?.length || 0);
+        setData(payloadData.data || []);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || 'Failed to fetch applications');
       } finally {
         setLoading(false);
       }

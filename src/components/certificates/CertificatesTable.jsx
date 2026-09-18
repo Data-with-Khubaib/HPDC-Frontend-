@@ -30,14 +30,10 @@ export default function CertificatesTable() {
   const end = Math.min(page * limit, totalItems);
 
   const handleAction = (cert) => {
-    if (cert.status === 'Expired' || cert.status === 'Withdrawn') {
+    if (cert.status === 'expired' || cert.status === 'withdrawn') {
       router.push('/company/apply/company-details');
     } else {
-      const toast = document.createElement('div');
-      toast.className = 'fixed bottom-6 right-6 bg-[#1B4332] text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium z-[100] animate-slide-up';
-      toast.textContent = `Viewing certificate ${cert.certificateId}`;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+      router.push(`/company/certificates/${cert.id}`);
     }
   };
 
@@ -100,18 +96,26 @@ export default function CertificatesTable() {
               ) : (
                 certificates.map((cert) => (
                   <tr key={cert.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-4 px-4 text-sm font-semibold text-[#111827]">{cert.ApplicationNo}</td>
-                    <td className="py-4 px-4 text-sm text-[#111827]">{cert.CertificateID}</td>
-                    <td className="py-4 px-4 text-sm text-[#6B7280]">{cert.CertificateType}</td>
+                    <td className="py-4 px-4 text-sm font-semibold text-[#111827]">{cert.application?.application_no || 'N/A'}</td>
+                    <td className="py-4 px-4 text-sm text-[#111827]">{cert.id ? cert.id.substring(0, 8).toUpperCase() : 'N/A'}</td>
+                    <td className="py-4 px-4 text-sm text-[#6B7280]">{cert.certificate_type || cert.CertificateType}</td>
                     <td className="py-4 px-4 text-center">
                       <Badge status={
-                        cert.Status === 'suspend' ? 'Suspended' :
-                          cert.Status ? cert.Status.charAt(0).toUpperCase() + cert.Status.slice(1) : 'Valid'
+                        cert.status === 'suspended' ? 'Suspended' :
+                          cert.status ? cert.status.charAt(0).toUpperCase() + cert.status.slice(1) : 'Valid'
                       } />
                     </td>
-                    <td className="py-4 px-4 text-sm text-[#6B7280]">{formatDate(cert.issuedDate)}</td>
-                    <td className="py-4 px-4 text-sm text-[#6B7280]">{formatDate(cert.expiryDate)}</td>
-                    <td className="py-4 px-4 text-center text-sm text-[#6B7280]">0 site(s)</td>
+                    <td className="py-4 px-4 text-sm text-[#6B7280]">{formatDate(cert.issued || cert.issuedDate)}</td>
+                    <td className="py-4 px-4 text-sm text-[#6B7280]">{formatDate(cert.expiry || cert.expiryDate)}</td>
+                    <td className="py-4 px-4 text-center text-sm text-[#6B7280]">
+                      {(() => {
+                        const details = cert.application?.details?.[0];
+                        if (details?.multiple_sites && Array.isArray(details.site_details)) {
+                          return details.site_details.length;
+                        }
+                        return cert.sites || 1;
+                      })()} site(s)
+                    </td>
                     <td className="py-4 px-4 text-center">
                       <button
                         onClick={() => handleAction(cert)}

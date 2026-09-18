@@ -4,10 +4,17 @@ import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import ProfileModal from '@/components/profile/ProfileModal';
 import { LanguageProvider, useLanguage } from './LanguageContext';
+import { useEffect } from 'react';
+import { useAuthStore } from '@/lib/authStore';
 
 function InnerLayout({ children, title }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const { isRtl } = useLanguage();
+  const { initAuth } = useAuthStore();
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
