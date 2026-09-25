@@ -1,5 +1,5 @@
 const variants = {
-  solid: 'bg-[#2D6A4F] hover:bg-[#1B4332] text-white',
+  solid: 'bg-[#1b5e20] hover:bg-[#14451a] text-white',
   outline: 'border border-[#E5E7EB] bg-white hover:bg-gray-50 text-[#111827]',
   danger: 'bg-[#E53E3E] hover:bg-red-700 text-white',
   'danger-outline': 'border border-red-300 bg-white hover:bg-red-50 text-[#E53E3E]',
@@ -32,7 +32,7 @@ export default function Button({
       className={`
         inline-flex items-center justify-center gap-2 font-medium rounded-lg
         transition-all duration-200 cursor-pointer
-        disabled:opacity-50 disabled:cursor-not-allowed
+        disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40
         ${variants[variant] || variants.solid}
         ${sizes[size] || sizes.md}
         ${fullWidth ? 'w-full' : ''}

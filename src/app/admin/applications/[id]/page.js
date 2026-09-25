@@ -331,8 +331,8 @@ export default function AdminApplicationDetail() {
                 <div>
                   <h2 className="text-[#1B4332] font-bold text-lg mb-4">Legal Documents</h2>
                   <div className="flex flex-col gap-4">
-                    {application?.documents && application.documents.some(d => !['company_profile', 'esg_questionnaire', 'supporting_document'].includes(d.document_type)) ? (
-                      application.documents.filter(d => !['company_profile', 'esg_questionnaire', 'supporting_document'].includes(d.document_type)).map((doc, idx) => (
+                    {application?.documents && application.documents.some(d => !['company_profile', 'esg_questionnaire'].includes(d.document_type)) ? (
+                      application.documents.filter(d => !['company_profile', 'esg_questionnaire'].includes(d.document_type)).map((doc, idx) => (
                         <a key={doc.id || idx} href={doc.file_url} target="_blank" rel="noopener noreferrer" className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:border-[#1B4332]/50 transition-colors">
                           <div className="bg-gray-50 p-2 rounded-lg shrink-0 border border-gray-100">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" className="w-6 h-6" />

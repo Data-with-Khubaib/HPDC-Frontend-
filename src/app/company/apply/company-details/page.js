@@ -146,7 +146,7 @@ export default function CompanyDetailsPage() {
       )}
 
       {/* ===== CARD 1: Organization Basic Details ===== */}
-      <QuestionCard title={t('orgBasicDetails')}>
+      <QuestionCard variant="company" title={t('orgBasicDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <FormField label={t('legalNameEn')} required error={errors.legalNameEn}>
             <TextInput value={formData.legalNameEn} onChange={(v) => handleFieldChange('legalNameEn', v)} placeholder="Enter company name in English" hasError={!!errors.legalNameEn} />
@@ -170,7 +170,7 @@ export default function CompanyDetailsPage() {
       </QuestionCard>
 
       {/* ===== CARD 2: Address and Contact Details ===== */}
-      <QuestionCard title={t('addressContactDetails')}>
+      <QuestionCard variant="company" title={t('addressContactDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <FormField label="Head Office Address (English) *" required error={errors.headOfficeEn}>
             <TextInput value={formData.headOfficeEn} onChange={(v) => handleFieldChange('headOfficeEn', v)} placeholder="Enter address in English" hasError={!!errors.headOfficeEn} />
@@ -193,7 +193,7 @@ export default function CompanyDetailsPage() {
       </QuestionCard>
 
       {/* ===== CARD 3: Legal Documents ===== */}
-      <QuestionCard title={t('legalDocs')}>
+      <QuestionCard variant="company" title={t('legalDocs')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[
             { label: 'Company Registration Number / CR Document *', field: 'crDocument' },
@@ -213,7 +213,7 @@ export default function CompanyDetailsPage() {
       </QuestionCard>
 
       {/* ===== CARD 4: Scope and Multisite Configuration ===== */}
-      <QuestionCard title="Scope and Multisite Configuration">
+      <QuestionCard variant="company" title="Scope and Multisite Configuration">
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <FormField label="Scope of Certification (English)" required error={errors.certAreasEn}>
@@ -225,7 +225,7 @@ export default function CompanyDetailsPage() {
           </div>
 
           <FormField label="Does your organization operate across multiple sites? *" required error={errors.multisite}>
-            <RadioGroup value={formData.multisite} onChange={(v) => handleFieldChange('multisite', v)} options={yesNoOptions} />
+            <RadioGroup variant="button" value={formData.multisite} onChange={(v) => handleFieldChange('multisite', v)} options={yesNoOptions} />
           </FormField>
 
           {/* Site Details — only when multisite = Yes */}
@@ -279,7 +279,7 @@ export default function CompanyDetailsPage() {
       </QuestionCard>
 
       {/* ===== CARD 5: Workforce Details ===== */}
-      <QuestionCard title={t('workforceDetails')}>
+      <QuestionCard variant="company" title={t('workforceDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <FormField label={t('totalEmployees')} required error={errors.totalEmployees}>
             <TextInput value={formData.totalEmployees} onChange={(v) => handleFieldChange('totalEmployees', v)} placeholder="e.g. 500" type="number" hasError={!!errors.totalEmployees} />
@@ -297,16 +297,16 @@ export default function CompanyDetailsPage() {
 
         <div className="flex flex-col gap-6">
           <FormField label={t('shiftOperations')} required error={errors.shiftOperations}>
-            <RadioGroup value={formData.shiftOperations} onChange={(v) => handleFieldChange('shiftOperations', v)} options={yesNoOptions} />
+            <RadioGroup variant="button" value={formData.shiftOperations} onChange={(v) => handleFieldChange('shiftOperations', v)} options={yesNoOptions} />
           </FormField>
           <FormField label={t('remoteWork')}>
-            <RadioGroup value={formData.remoteWork} onChange={(v) => handleFieldChange('remoteWork', v)} options={yesNoOptions} />
+            <RadioGroup variant="button" value={formData.remoteWork} onChange={(v) => handleFieldChange('remoteWork', v)} options={yesNoOptions} />
           </FormField>
         </div>
       </QuestionCard>
 
       {/* ===== CARD 6: Brand Details ===== */}
-      <QuestionCard title={t('brandDetails')}>
+      <QuestionCard variant="company" title={t('brandDetails')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <div className="md:col-span-2">
             <FormField label="Core Business Activities *" required error={errors.coreBusinessActivities}>
@@ -323,10 +323,10 @@ export default function CompanyDetailsPage() {
 
         <div className="flex flex-col gap-5 mb-5">
           <FormField label="Critical Processes (Manufacturing, IT, Logistics, etc.) *" required error={errors.criticalProcesses}>
-            <RadioGroup value={formData.criticalProcesses} onChange={(v) => handleFieldChange('criticalProcesses', v)} options={yesNoOptions} />
+            <RadioGroup variant="button" value={formData.criticalProcesses} onChange={(v) => handleFieldChange('criticalProcesses', v)} options={yesNoOptions} />
           </FormField>
           <FormField label="Outsourced Processes (if any) *" required error={errors.outsourcedProcesses}>
-            <RadioGroup value={formData.outsourcedProcesses} onChange={(v) => handleFieldChange('outsourcedProcesses', v)} options={yesNoOptions} />
+            <RadioGroup variant="button" value={formData.outsourcedProcesses} onChange={(v) => handleFieldChange('outsourcedProcesses', v)} options={yesNoOptions} />
           </FormField>
         </div>
 
@@ -364,7 +364,7 @@ export default function CompanyDetailsPage() {
       </QuestionCard>
 
       {/* ===== CARD 7: Certification and Compliance Status ===== */}
-      <QuestionCard title={t('certComplianceStatus')}>
+      <QuestionCard variant="company" title={t('certComplianceStatus')}>
         <div className="flex flex-col gap-6">
           {[
             { label: 'ISO 9001 (Quality) *', field: 'iso9001' },
@@ -374,7 +374,7 @@ export default function CompanyDetailsPage() {
             { label: 'ISO 50001 (Energy) *', field: 'iso50001' },
           ].map(({ label, field }) => (
             <FormField key={field} label={label}>
-              <RadioGroup value={formData[field]} onChange={(v) => handleFieldChange(field, v)} options={yesNoOptions} />
+              <RadioGroup variant="button" value={formData[field]} onChange={(v) => handleFieldChange(field, v)} options={yesNoOptions} />
             </FormField>
           ))}
           <div className="border border-[#E5E7EB] rounded-2xl p-5 bg-white mt-2 shadow-xs">
@@ -393,7 +393,7 @@ export default function CompanyDetailsPage() {
       </QuestionCard>
 
       {/* ===== CARD 8: ESG and Sustainability Practice Details ===== */}
-      <QuestionCard title={t('esgPracticeDetails')}>
+      <QuestionCard variant="company" title={t('esgPracticeDetails')}>
         <div className="flex flex-col gap-6">
           {[
             { label: 'ESG Program in Place', field: 'esgProgram' },
@@ -405,14 +405,14 @@ export default function CompanyDetailsPage() {
             { label: 'Good Labour / ESG Compliance Assessment', field: 'esgCompliance' },
           ].map(({ label, field }) => (
             <FormField key={field} label={label}>
-              <RadioGroup value={formData[field]} onChange={(v) => handleFieldChange(field, v)} options={yesNoOptions} />
+              <RadioGroup variant="button" value={formData[field]} onChange={(v) => handleFieldChange(field, v)} options={yesNoOptions} />
             </FormField>
           ))}
         </div>
       </QuestionCard>
 
       {/* ===== CARD 9: Additional Notes & Supporting Documents ===== */}
-      <QuestionCard title={t('additionalNotes')}>
+      <QuestionCard variant="company" title={t('additionalNotes')}>
         <div className="border border-[#E5E7EB] rounded-2xl p-5 bg-white mb-8 shadow-xs">
           <label className="block text-sm font-medium text-[#374151] mb-2">
             Additional Notes <span className="text-[#6B7280] font-normal">(optional)</span>

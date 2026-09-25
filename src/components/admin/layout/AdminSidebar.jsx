@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuthStore } from '@/lib/authStore';
 import {
   LayoutDashboard,
   Users,
@@ -97,6 +98,7 @@ export default function AdminSidebar() {
       <div className="px-3 pb-6 pt-2 border-t border-gray-100">
         <button
           type="button"
+          onClick={() => useAuthStore.getState().logout()}
           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#E53E3E] border border-red-200 bg-red-50/40 hover:bg-red-50 transition-colors w-full cursor-pointer"
         >
           <LogOut size={16} />

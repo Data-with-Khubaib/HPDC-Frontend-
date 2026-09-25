@@ -27,33 +27,33 @@ export default function AdminCertificatesTable({ certificates, onSuspendCertific
               <tr key={cert.id} className="hover:bg-gray-50/60 transition-colors">
                 {/* Certificate ID */}
                 <td className="py-4 px-4 font-semibold text-gray-900 whitespace-nowrap">
-                  {cert.certificate_number || cert.certificateId || '-'}
+                  {cert.id ? cert.id.substring(0, 8).toUpperCase() : '-'}
                 </td>
 
                 {/* Company & Registration Number */}
                 <td className="py-4 px-4 whitespace-nowrap">
-                  <p className="font-medium text-gray-900 leading-snug">{cert.application?.company?.name || cert.companyName || '-'}</p>
-                  <p className="text-xs text-gray-400 font-mono mt-0.5">{cert.application?.company?.registration_number || cert.registrationNo || '-'}</p>
+                  <p className="font-medium text-gray-900 leading-snug">{cert.company?.company_name || '-'}</p>
+                  <p className="text-xs text-gray-400 font-mono mt-0.5">{cert.company?.registration_number?.toString() || '-'}</p>
                 </td>
 
                 {/* Status VALID Pill */}
                 <td className="py-4 px-4 text-center whitespace-nowrap">
                   <span className={`inline-block px-4 py-1 rounded-full text-xs font-bold tracking-wide shadow-2xs ${
-                    cert.status === 'VALID' ? 'bg-[#1B4332] text-white' : 
-                    cert.status === 'SUSPENDED' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'
+                    cert.status?.toUpperCase() === 'VALID' || cert.status?.toUpperCase() === 'ACTIVE' ? 'bg-[#1B4332] text-white' : 
+                    cert.status?.toUpperCase() === 'SUSPENDED' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {cert.status}
+                    {cert.status ? cert.status.toUpperCase() : 'N/A'}
                   </span>
                 </td>
 
                 {/* Issued Date */}
                 <td className="py-4 px-4 text-gray-600 text-xs whitespace-nowrap">
-                  {cert.issue_date ? new Date(cert.issue_date).toLocaleDateString() : cert.issuedDate || '-'}
+                  {cert.issued ? new Date(cert.issued).toLocaleDateString() : '-'}
                 </td>
 
                 {/* Expiry Date */}
                 <td className="py-4 px-4 text-gray-600 text-xs whitespace-nowrap">
-                  {cert.expiry_date ? new Date(cert.expiry_date).toLocaleDateString() : cert.expiryDate || '-'}
+                  {cert.expiry ? new Date(cert.expiry).toLocaleDateString() : '-'}
                 </td>
 
                 {/* Suspend Action Button */}

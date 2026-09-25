@@ -3,10 +3,12 @@ import { useState, useRef } from 'react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/authStore';
+import { useRouter } from 'next/navigation';
 import { Mail, Building2, Phone, Globe, ShieldCheck, Eye, EyeOff, LogOut } from 'lucide-react';
 
 export default function ProfileModal({ isOpen, onClose }) {
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
   const currentUser = user || { name: 'Company User', email: 'user@example.com', company: 'Company', phone: 'N/A', country: 'N/A', sector: 'N/A', initials: 'CO' };
   const initials = currentUser.name ? currentUser.name.substring(0, 2).toUpperCase() : (currentUser.initials || 'CO');
 
@@ -23,12 +25,24 @@ export default function ProfileModal({ isOpen, onClose }) {
     onClose();
   };
 
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      onClose();
+      router.push('/signin');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
+
+  const companyObj = typeof currentUser.company === 'object' && currentUser.company !== null ? currentUser.company : null;
+
   const infoRows = [
-    { label: 'EMAIL', value: currentUser.email, icon: Mail },
-    { label: 'COMPANY', value: currentUser.company, icon: Building2 },
-    { label: 'PHONE NUMBER', value: currentUser.phone, icon: Phone },
-    { label: 'COUNTRY', value: currentUser.country, icon: Globe },
-    { label: 'SECTOR', value: currentUser.sector, icon: ShieldCheck },
+    { label: 'EMAIL', value: currentUser.email || 'N/A', icon: Mail },
+    { label: 'COMPANY', value: companyObj ? companyObj.company_name : currentUser.company || 'N/A', icon: Building2 },
+    { label: 'PHONE NUMBER', value: companyObj?.phone_number || currentUser.phone || 'N/A', icon: Phone },
+    { label: 'COUNTRY', value: companyObj?.country || currentUser.country || 'N/A', icon: Globe },
+    { label: 'SECTOR', value: companyObj?.sector || currentUser.sector || 'N/A', icon: ShieldCheck },
   ];
 
   if (view === 'password') {
@@ -156,7 +170,7 @@ export default function ProfileModal({ isOpen, onClose }) {
         <Button variant="outline" fullWidth onClick={() => setView('password')}>
           Change Password
         </Button>
-        <Button variant="danger-outline" fullWidth onClick={handleClose}>
+        <Button variant="danger-outline" fullWidth onClick={handleSignOut}>
           <LogOut size={16} />
           Sign Out
         </Button>
